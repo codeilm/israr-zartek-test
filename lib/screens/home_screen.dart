@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:myfood/controllers/home_controller.dart';
@@ -269,55 +270,61 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 6,
-      child: Scaffold(
-        key: _scaffoldKey,
-        drawer: MyDrawer(),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          leading: IconButton(
-            icon: Icon(
-              Icons.menu,
-              size: 30.0,
-              color: Colors.black54,
-            ),
-            onPressed: () {
-              _scaffoldKey.currentState.openDrawer();
-            },
-          ),
-          actions: [_buildCart()],
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(50),
-            child: GetBuilder<HomeController>(
-              builder: (_) {
-                return homeController.isDataLoaded &&
-                        homeController.restaurantModel != null
-                    ? TabBar(
-                        isScrollable: true,
-                        unselectedLabelColor: Colors.black54,
-                        labelColor: Colors.red,
-                        tabs: _buildCategories(),
-                        controller: _tabController,
-                        indicatorColor: Colors.red,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                      )
-                    : buildCategoryShimmer();
+    return WillPopScope(
+      onWillPop: () {
+        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+        return Future(() => true);
+      },
+      child: DefaultTabController(
+        length: 6,
+        child: Scaffold(
+          key: _scaffoldKey,
+          drawer: MyDrawer(),
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            leading: IconButton(
+              icon: Icon(
+                Icons.menu,
+                size: 30.0,
+                color: Colors.black54,
+              ),
+              onPressed: () {
+                _scaffoldKey.currentState.openDrawer();
               },
             ),
+            actions: [_buildCart()],
+            bottom: PreferredSize(
+              preferredSize: Size.fromHeight(50),
+              child: GetBuilder<HomeController>(
+                builder: (_) {
+                  return homeController.isDataLoaded &&
+                          homeController.restaurantModel != null
+                      ? TabBar(
+                          isScrollable: true,
+                          unselectedLabelColor: Colors.black54,
+                          labelColor: Colors.red,
+                          tabs: _buildCategories(),
+                          controller: _tabController,
+                          indicatorColor: Colors.red,
+                          indicatorSize: TabBarIndicatorSize.tab,
+                        )
+                      : buildCategoryShimmer();
+                },
+              ),
+            ),
           ),
+          body: GetBuilder<HomeController>(builder: (_) {
+            return homeController.isDataLoaded &&
+                    homeController.restaurantModel != null
+                ? TabBarView(
+                    children: _buildCategoriesDishes(),
+                    controller: _tabController,
+                  )
+                : buildBodyShimmer();
+          }),
         ),
-        body: GetBuilder<HomeController>(builder: (_) {
-          return homeController.isDataLoaded &&
-                  homeController.restaurantModel != null
-              ? TabBarView(
-                  children: _buildCategoriesDishes(),
-                  controller: _tabController,
-                )
-              : buildBodyShimmer();
-        }),
       ),
     );
   }
