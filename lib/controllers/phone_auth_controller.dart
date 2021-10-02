@@ -53,5 +53,6 @@ class PhoneAuthController extends GetxController {
     showLoader('Wait for few seconds');
     await FirebaseAuth.instance.signOut();
     hideLoader();
+    Get.offAllNamed(RouteList.loginScreen);
   }
 }
